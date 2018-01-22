@@ -2,15 +2,15 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "EPSRgui"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "Sam Callear"
 #define MyAppURL "https://www.projectaten.com/"
 #define MyAppExeName "EPSRgui.exe"
 
 ; Locations of bin directories of Qt, GnuWin(32), and MinGW(32)
-#define QtDir "C:\Qt\5.7.0\5.7\mingw53_32"
+#define QtDir "C:\Qt\5.8\mingw53_32"
 #define GnuWinDir "C:\GnuWin32"
-#define MinGWDir "C:\Qt\5.7.0\5.7\mingw53_32"
+#define MinGWDir "C:\Qt\Tools\mingw530_32"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -28,7 +28,7 @@ DefaultDirName={pf}\EPSRgui
 DefaultGroupName={#MyAppName}
 LicenseFile=..\..\COPYING
 OutputDir=..\..\
-OutputBaseFilename=EPSRgui-1.0
+OutputBaseFilename=EPSRgui-1.0.1
 SetupIconFile=EPSRgui.ico
 Compression=lzma
 SolidCompression=yes
