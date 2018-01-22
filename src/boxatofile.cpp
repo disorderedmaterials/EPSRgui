@@ -94,7 +94,7 @@ void MainWindow::on_mixatoButton_clicked(bool checked)
 
         if (!processEPSR_.waitForFinished(1800000)) return;
 
-        if (readAtoFileBoxDetails() == false)
+	if (readAtoFileBoxDetails() == false)
         {
             atoFileName_.clear();
             ui.boxAtoLabel->clear();
@@ -120,6 +120,7 @@ void MainWindow::on_mixatoButton_clicked(bool checked)
             ui.dcoreLineEdit->clear();
             return;
         }
+
         QStringList testAtoAtomTypes = atoAtomTypes;
         if (testAtoAtomTypes.removeDuplicates() >= 1)
         {
@@ -747,7 +748,6 @@ bool MainWindow::readAtoFileBoxDetails()
         ui.boxAtoVol->setText(boxVolstr);
         atoHeaderLines = 4;
     }
-
     line = stream.readLine();
     dataLine = line.split("  ", QString::SkipEmptyParts);
     ui.atoTetherTolLineEdit->setText(dataLine.at(0).trimmed());
@@ -772,7 +772,7 @@ bool MainWindow::readAtoFileBoxDetails()
     fullnLinesPerComponentList.clear();
     int lineCtr = 0;
     QRegExp atomLabelrx(" ([A-Z][A-Za-z0-9 ]{2})   ([0-9 ]{1,4})      0");
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
     do {
         line = stream.readLine();
         dataLine = line.split(" ",QString::SkipEmptyParts);
