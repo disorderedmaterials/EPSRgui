@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0.1
+Encoding=UTF-8
+Comment=EPSRgui - User interface to Empirical Potential Structure Refinement
+Exec=EPSRgui %f
+GenericName=EPSRgui
+Icon=epsrgui
+Name=EPSRgui
+StartupNotify=false
+Terminal=0
+Type=Application
+Categories=Education;Chemistry;Physics;
+X-SuSE-translate=false
