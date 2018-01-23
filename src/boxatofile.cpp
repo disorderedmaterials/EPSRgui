@@ -969,7 +969,7 @@ void MainWindow::on_randomiseButton_clicked(bool checked)
 
 void MainWindow::on_updateAtoFileButton_clicked(bool checked)
 {
-    killTimer(changeatoFinishedTimerId_);
+    if (changeatoFinishedTimerId_ != -1) killTimer(changeatoFinishedTimerId_);
     changeatoFinishedTimerId_ = -1;
 
     if (ui.temperatureLineEdit->text().isEmpty() || ui.vibtempLineEdit->text().isEmpty() || ui.angtempLineEdit->text().isEmpty() || ui.dihtempLineEdit->text().isEmpty()
@@ -1156,7 +1156,7 @@ void MainWindow::on_updateAtoFileButton_clicked(bool checked)
 
 void MainWindow::on_fmoleButton_clicked(bool checked)
 {
-    killTimer(changeatoFinishedTimerId_);
+    if (changeatoFinishedTimerId_ != -1) killTimer(changeatoFinishedTimerId_);
     changeatoFinishedTimerId_ = -1;
 
     int fmoleIter = ui.fmoleLineEdit->text().toInt();

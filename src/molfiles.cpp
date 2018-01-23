@@ -2226,7 +2226,7 @@ void MainWindow::on_deleteRotAllButton_clicked (bool checked)
 
 void MainWindow::on_updateMolFileButton_clicked(bool checked)
 {
-    killTimer(molChangeatoFinishedTimerId_);
+    if (molChangeatoFinishedTimerId_ != -1) killTimer(molChangeatoFinishedTimerId_);
     molChangeatoFinishedTimerId_ = -1;
 
     QString extension = molFileName_.split(".",QString::SkipEmptyParts).at(1);

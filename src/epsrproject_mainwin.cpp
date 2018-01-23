@@ -120,6 +120,10 @@ MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent), messagesDialo
     connect(&jmolFile_, SIGNAL(directoryChanged(const QString &)), this, SLOT(makeMolFile()));
     connect(&jmolFile_, SIGNAL(fileChanged(const QString &)), this, SLOT(makeMolFile()));
 
+    // Timer IDs
+    molChangeatoFinishedTimerId_ = -1;
+    outputTimerId_ = -1;
+    molChangeatoFinishedTimerId_ = -1;
 }
 
 void MainWindow::createActions()
@@ -1966,11 +1970,11 @@ void MainWindow::runEPSRcheck()
     ui.plot2Button->setEnabled(true);
 
     // kill any other timers that might be still running if a setup was quit but not saved
-    killTimer(outputTimerId_);
+    if (outputTimerId_ != -1) killTimer(outputTimerId_);
     outputTimerId_ = -1;
-    killTimer(molChangeatoFinishedTimerId_);
+    if (molChangeatoFinishedTimerId_ != -1) killTimer(molChangeatoFinishedTimerId_);
     molChangeatoFinishedTimerId_ = -1;
-    killTimer(changeatoFinishedTimerId_);
+    if (changeatoFinishedTimerId_ != -1) killTimer(changeatoFinishedTimerId_);
     changeatoFinishedTimerId_ = -1;
 
     //use the killepsr file to determine when epsr has finished and run enableButtons() once it has
@@ -2132,11 +2136,11 @@ void MainWindow::runEPSR()
     epsrRunningTimerId_ = startTimer(20000);
 
     //also kill any other timers that might be still running if a setup was quit but not saved
-    killTimer(outputTimerId_);
+    if (outputTimerId_ != -1) killTimer(outputTimerId_);
     outputTimerId_ = -1;
-    killTimer(molChangeatoFinishedTimerId_);
+    if (molChangeatoFinishedTimerId_ != -1) killTimer(molChangeatoFinishedTimerId_);
     molChangeatoFinishedTimerId_ = -1;
-    killTimer(changeatoFinishedTimerId_);
+    if (changeatoFinishedTimerId_ != -1) killTimer(changeatoFinishedTimerId_);
     changeatoFinishedTimerId_ = -1;
 }
 
@@ -2235,7 +2239,7 @@ void MainWindow::enableButtons()
     epsrFinished_.removePath(workingDir_+"killepsr");
 
     //remove path for auto update in case it is switched on
-    killTimer(epsrRunningTimerId_);
+    if (epsrRunningTimerId_ != -1) killTimer(epsrRunningTimerId_);
     epsrRunningTimerId_ = -1;
 
     //if auto update not ticked, reload .inp and .pcof files and replot plots
@@ -2976,7 +2980,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
         if (outfile.exists() || plotFile.exists())
         {
             showAvailableFiles();
-            killTimer(outputTimerId_);
+            if (outputTimerId_ != -1) killTimer(outputTimerId_);
             outputTimerId_ = -1;
         }
     }
@@ -3014,7 +3018,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
             messagesDialog.refreshMessages();
             ui.messagesLineEdit->setText("Finished running fmole");
 
-            killTimer(fmoleFinishedTimerId_);
+            if (fmoleFinishedTimerId_ != -1) killTimer(fmoleFinishedTimerId_);
             fmoleFinishedTimerId_ = -1;
         }
     }
@@ -3031,7 +3035,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
             messagesDialog.refreshMessages();
             ui.messagesLineEdit->setText("Component .ato file updated");
 
-            killTimer(molChangeatoFinishedTimerId_);
+            if (molChangeatoFinishedTimerId_ != -1) killTimer(molChangeatoFinishedTimerId_);
             molChangeatoFinishedTimerId_ = -1;
         }
     }
@@ -3045,7 +3049,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
             messagesDialog.refreshMessages();
             ui.messagesLineEdit->setText("Box .ato file updated");
 
-            killTimer(changeatoFinishedTimerId_);
+            if (changeatoFinishedTimerId_ != -1) killTimer(changeatoFinishedTimerId_);
             changeatoFinishedTimerId_ = -1;
         }
     }
