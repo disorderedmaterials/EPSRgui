@@ -1058,7 +1058,7 @@ void MainWindow::on_updateAtoFileButton_clicked(bool checked)
     dataLine.clear();
     QString original;
 
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
 
     //1st line of ato file
     line = streamRead.readLine();

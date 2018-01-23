@@ -1110,7 +1110,7 @@ bool MainWindow::readMolFile()
     numberComponentAtomLabels.clear();
     numberComponentAtomLabels.resize(ljAtoms.count());
     QRegExp atomLabelrx(" ([A-Z][A-Za-z0-9 ]{2})   ([0-9 ]{1,4})      0");
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
     do {
         lineato = streamato.readLine();
         if (atomLabelrx.exactMatch(lineato))
@@ -1361,7 +1361,7 @@ bool MainWindow::readAtoFile()
     ljTypes.clear();
 
     QRegExp ljAtomLabelrx(" ([A-Z][A-Za-z0-9 ]{2}) ([A-Za-z ]{1,2})   ([0-1]{1})");
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
 
     do
     {
@@ -1843,7 +1843,7 @@ bool MainWindow::updateMolFile()
         tetherTol = QString("%1").arg(tetherCoordZd, 0, 'E', 5);
     }
 
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
 
     lineato = streamatoR.readLine();
     dataLineato=lineato.split(" ",QString::SkipEmptyParts);
@@ -1952,7 +1952,7 @@ bool MainWindow::updateAtoFile()
     QString dcorestr = ui.molDcoreLineEdit->text();
 
     QRegExp atomLabelrx(" ([A-Z][A-Za-z0-9 ]{2}) ([A-Za-z ]{1,2})   ([0-1]{1})");
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{5}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
 
     line = streamR.readLine();
     dataLine=line.split(" ",QString::SkipEmptyParts);
