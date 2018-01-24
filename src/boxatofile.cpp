@@ -772,7 +772,8 @@ bool MainWindow::readAtoFileBoxDetails()
     fullnLinesPerComponentList.clear();
     int lineCtr = 0;
     QRegExp atomLabelrx(" ([A-Z][A-Za-z0-9 ]{2})   ([0-9 ]{1,4})      0");
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+-]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+-]{2}[0-9]{2})");
+
     do {
         line = stream.readLine();
         dataLine = line.split(" ",QString::SkipEmptyParts);
@@ -1058,7 +1059,7 @@ void MainWindow::on_updateAtoFileButton_clicked(bool checked)
     dataLine.clear();
     QString original;
 
-    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+]{2}[0-9]{2})");
+    QRegExp ecoredcorerx("  ([0-9]{1}[.]{1}[0-9]{1,}[E+-]{2}[0-9]{2})  ([0-9]{1}[.]{1}[0-9]{1,}[E+-]{2}[0-9]{2})");
 
     //1st line of ato file
     line = streamRead.readLine();
@@ -1112,12 +1113,14 @@ void MainWindow::on_updateAtoFileButton_clicked(bool checked)
                 {
                     if (tetherList.at(i) == "T" && tetherLetter == "F")
                     {
-                        tetherline = tetherline.replace(91, 6, "T"+tetherAtoms.at(0));
+//                         tetherline = tetherline.replace(91, 6, "T"+tetherAtoms.at(0));
+			tetherline.replace("F     ", "T"+tetherAtoms.at(0));
                     }
                     else
-                    if (tetherList.at(i) == "F" && tetherLetter.contains("T0") == true)
+                    if (tetherList.at(i) == "F" && tetherLetter.contains("T") == true)
                     {
-                        tetherline = tetherline.replace(91, 6, "F     ");
+//                         tetherline = tetherline.replace(91, 6, "F     ");
+			tetherline.replace(tetherLetter, QString("%1").arg("F", -tetherLetter.length()));
                     }
                 }
             }
@@ -1129,7 +1132,7 @@ void MainWindow::on_updateAtoFileButton_clicked(bool checked)
         {
             if (ecoredcorerx.exactMatch(line))
             {
-                line = line.replace(0, 27, "  "+ecorestr.setNum(ecore,'E',5)+"  "+dcorestr.setNum(dcore,'E',5));
+                line = "  "+ecorestr.setNum(ecore,'E',5)+"  "+dcorestr.setNum(dcore,'E',5);
             }
             original.append(line+"\n");
         }
