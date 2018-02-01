@@ -1107,6 +1107,9 @@ bool MainWindow::readMolFile()
         ui.tetherAtomLineEdit->clear();
     }
 
+    // TGAY 02/2018 - The ato file may not contain ecore and dcore values, so set the ui widgets to something sensible to avoid complaints later on
+    ui.molEcoreLineEdit->setText("1.0");
+    ui.molDcoreLineEdit->setText("0.0");
     numberComponentAtomLabels.clear();
     numberComponentAtomLabels.resize(ljAtoms.count());
     QRegExp atomLabelrx(" ([A-Z][A-Za-z0-9 ]{2})   ([0-9 ]{1,4})      0");
@@ -1135,7 +1138,7 @@ bool MainWindow::readMolFile()
         }
     } while (!lineato.isNull());
     fileato.close();
-
+        
     //number of entries lists
     const int N_bondDistances = bondDistances.count();
     const int N_bondAngles = bondAngles.count();
@@ -1381,7 +1384,7 @@ bool MainWindow::readAtoFile()
         }
         if (ecoredcorerx.exactMatch(line))
         {
-            dataLine = line.split("  ",QString::SkipEmptyParts);
+	    dataLine = line.split("  ",QString::SkipEmptyParts);
             ui.molEcoreLineEdit->setText(dataLine.at(0));
             ui.molDcoreLineEdit->setText(dataLine.at(1));
         }
@@ -1764,8 +1767,9 @@ bool MainWindow::updateMolFile()
     double dcore = dcorestr.toDouble();
     dcorestr = QString("%1").arg(dcore, 0, 'E', 5);
 
-    streamWrite << "ecoredcore    " << ecorestr << "    " << dcorestr << "\n"
-              "density  0.100000E-02\n";
+    streamWrite << "ecoredcore    " << ecorestr << "    " << dcorestr << "\n";
+    streamWrite << "density  0.100000E-02\n";
+
     fileWrite.close();
 
     //rename temp file as .mol file to copy over changes and delete temp file
