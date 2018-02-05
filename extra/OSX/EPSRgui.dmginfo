@@ -9,7 +9,7 @@
 APP_NAME=EPSRgui
 
 # -- APP_VERSION : Should contain the version / revision number of the package (for renaming purposes)
-APP_VERSION="1.1.1"
+APP_VERSION="1.1.2"
 
 # -- APP_BIN : List of binaries (space-separated, with paths) to include in the bundle
 APP_BIN="EPSRgui.app/Contents/MacOS/EPSRgui extra/OSX/runEPSRgui"

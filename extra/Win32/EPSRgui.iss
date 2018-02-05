@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "EPSRgui"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.1.2"
 #define MyAppPublisher "Sam Callear"
 #define MyAppURL "https://www.projectaten.com/"
 #define MyAppExeName "EPSRgui.exe"
@@ -28,7 +28,7 @@ DefaultDirName={pf}\EPSRgui
 DefaultGroupName={#MyAppName}
 LicenseFile=..\..\COPYING
 OutputDir=..\..\
-OutputBaseFilename=EPSRgui-1.1.1
+OutputBaseFilename=EPSRgui-1.1.2
 SetupIconFile=EPSRgui.ico
 Compression=lzma
 SolidCompression=yes
