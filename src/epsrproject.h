@@ -24,6 +24,7 @@ class SetupOutputDialog;
 class NotesDialog;
 class RemoveComponentDialog;
 class MakeMolLattDialog;
+class ExchangeableAtomsDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -47,7 +48,6 @@ private slots:
     void import();
     void runEPSRonce();
     void runEPSR();
-    void runEPSRcheck();
     void plot();
     void plotBox();
     void plotEPSRshell();
@@ -108,12 +108,13 @@ public:
     QString workingDir();
     QString atoFileName();
     QString epsrInpFileName();
-    QSettings EPSRguiSettings();
     QString epsrDir();
     QString epsrBinDir();
     QStringList atomTypes();
     QVector<int> numberOfEachAtomType();
     QStringList listAtoFiles();
+    QStringList listWtsFiles();
+    QString wtsBaseFileName();
     QString outputFileName();
     QString outputSetupFileType();
     QString outputFileExt();
@@ -123,6 +124,7 @@ public:
     QString plotFileExt();
     QString coeffFileName();
     QByteArray messageText();
+    QStringList exchangeableAtomsList();
 
 public slots:
     void createNew();
@@ -227,6 +229,7 @@ private slots:
     void setSelectedDataFile();
     void on_removeDataFileButton_clicked(bool checked);
     void on_makeWtsButton_clicked(bool checked);
+    void on_exchangeableAtomsButton_clicked(bool checked);
 
 private:
     bool makeNwtsSetup();
@@ -239,11 +242,10 @@ private:
 
 public:
     QList<WtsComponent> wtscomponents;
-
     QStringList dataFileList;
-    QStringList dataFileTypeList;
     QStringList wtsFileList;
     QStringList normalisationList;
+    int addExchangeableAtoms;
 
     // Setup EPSR Inp File Tab
 private slots:
@@ -294,12 +296,13 @@ private slots:
     void on_addOutputButton_clicked(bool checked);
     void on_removeOutputButton_clicked(bool checked);
     void on_applyOutputsButton_clicked(bool checked);
+    void on_applyCommandButton_clicked(bool checked);
 
     //main window embedded plots
 private:
-    bool plot1();
+    void plot1();
+    void plot2();
     bool getplottype1();
-    bool plot2();
     bool getplottype2();
     bool fqplot1();
     bool frplot1();

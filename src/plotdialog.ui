@@ -105,7 +105,12 @@
                 </item>
                 <item>
                  <property name="text">
-                  <string>ereq vs energy</string>
+                  <string>ereq vs fit</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ereq vs iteration</string>
                  </property>
                 </item>
                 <item>
@@ -594,7 +599,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="yButtonGroup"/>
   <buttongroup name="xButtonGroup"/>
+  <buttongroup name="yButtonGroup"/>
  </buttongroups>
 </ui>

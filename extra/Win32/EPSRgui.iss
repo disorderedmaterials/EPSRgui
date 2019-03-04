@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "EPSRgui"
-#define MyAppVersion "1.1.2"
+#define MyAppVersion "1.2"
 #define MyAppPublisher "Sam Callear"
 #define MyAppURL "https://www.projectaten.com/"
 #define MyAppExeName "EPSRgui.exe"
@@ -28,7 +28,11 @@ DefaultDirName={pf}\EPSRgui
 DefaultGroupName={#MyAppName}
 LicenseFile=..\..\COPYING
 OutputDir=..\..\
+<<<<<<< HEAD:extra/Win32/EPSRgui.iss
 OutputBaseFilename=EPSRgui-1.1.2
+=======
+OutputBaseFilename=EPSRgui-1.1
+>>>>>>> upstream/master:extra/Win32/epsrgui.iss
 SetupIconFile=EPSRgui.ico
 Compression=lzma
 SolidCompression=yes
@@ -62,7 +66,7 @@ Source: "{#QtDir}\plugins\iconengines\qsvgicon.dll"; DestDir: "{app}\bin\iconeng
 Source: "{#QtDir}\plugins\platforms\qwindows.dll"; DestDir: "{app}\bin\platforms"; Flags: ignoreversion
 Source: "{#QtDir}\plugins\imageformats\*.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
 ; Source: "C:\Windows\System32\D3DCompiler_43.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "..\..\resources\EPSRgui Manual.pdf"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\..\resources\*"; DestDir: "{app}\resources"; Flags: ignoreversion
 ;Name: "{group}\Uninstall\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; Comment: "Uninstall JTSDK";
 
 [Icons]

@@ -27,6 +27,11 @@ void SettingsDialog::readSettings()
     ui.epsrBinDirlineEdit->setText(settings.value("EPSRbindir").toString());
     ui.epsrDirlineEdit->setText(settings.value("EPSRdir").toString());
     ui.visualiserLineEdit->setText(settings.value("visualiser").toString());
+    if (settings.value("fmoleReminder").toInt() == 0)
+    {
+        ui.fmoleReminderCheckBox->setChecked(false);
+    }
+    else (ui.fmoleReminderCheckBox->setChecked(true));
 }
 
 void SettingsDialog::on_okButton_clicked(bool checked)
@@ -51,7 +56,10 @@ void SettingsDialog::on_browseEPSRDirButton_clicked(bool checked)
         prefEPSRdir = QFileDialog::getExistingDirectory(this, "Choose EPSR directory", ui.epsrDirlineEdit->text());
     }
 
-    ui.epsrDirlineEdit->setText(prefEPSRdir);
+    if (!prefEPSRdir.isEmpty())
+    {
+        ui.epsrDirlineEdit->setText(prefEPSRdir);
+    }
 }
 
 void SettingsDialog::on_browseEPSRBinDirButton_clicked(bool checked)
@@ -66,7 +74,10 @@ void SettingsDialog::on_browseEPSRBinDirButton_clicked(bool checked)
         prefEPSRbindir = QFileDialog::getExistingDirectory(this, "Choose EPSR bin directory", ui.epsrBinDirlineEdit->text());
     }
 
-    ui.epsrBinDirlineEdit->setText(prefEPSRbindir);
+    if (!prefEPSRbindir.isEmpty())
+    {
+        ui.epsrBinDirlineEdit->setText(prefEPSRbindir);
+    }
 }
 
 void SettingsDialog::on_browseVisualiserExeButton_clicked(bool checked)
@@ -76,7 +87,11 @@ void SettingsDialog::on_browseVisualiserExeButton_clicked(bool checked)
 #else
     QString prefVisExe = QFileDialog::getOpenFileName(this, "Choose visualiser exectuable", currentDir.path(), tr("All files (*.*)"));
 #endif
-    ui.visualiserLineEdit->setText(prefVisExe);
+
+    if (!prefVisExe.isEmpty())
+    {
+        ui.visualiserLineEdit->setText(prefVisExe);
+    }
 }
 
 void SettingsDialog::writeSettingsFile()
@@ -121,7 +136,15 @@ void SettingsDialog::writeSettingsFile()
     }
     else
     {
-        settings.remove("visulaiser");
+        settings.remove("visualiser");
+    }
+    if (ui.fmoleReminderCheckBox->isChecked())
+    {
+        settings.setValue("fmoleReminder", 1);
+    }
+    else
+    {
+        settings.setValue("fmoleReminder", 0);
     }
     settings.sync();
 

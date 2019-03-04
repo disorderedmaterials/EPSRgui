@@ -109,8 +109,27 @@ void MainWindow::getOutputsRunning()
     QStringList dataLine;
     dataLine.clear();
 
+#ifdef _WIN32
+    line = stream.readLine();   //readLine for 4 lines to get to run epsr line
+    line = stream.readLine();
+    line = stream.readLine();
+    line = stream.readLine();
+#else
+    line = stream.readLine();   //readLine for 5 lines to get to run epsr line
+    line = stream.readLine();
+    line = stream.readLine();
+    line = stream.readLine();
+    line = stream.readLine();
+#endif
+
     do {
         line = stream.readLine();
+#ifdef _WIN32
+        if (line.contains("%EPSRrun%killepsr")) break;
+#else
+        if (line.contains("\"$EPSRrun\"killepsr")) break;
+#endif
+        else
         if (line.contains("chains")
                 || line.contains("clusters")
                 || line.contains("coord")
@@ -126,6 +145,15 @@ void MainWindow::getOutputsRunning()
         {
             dataLine = line.split(" ", QString::SkipEmptyParts);
             ui.runOutEPSRList->addItem(dataLine.at(2)+": "+dataLine.at(3));
+        }
+        else
+        if (line.contains("writexyz"))
+        {
+            ui.dlputilsOutCheckBox->setChecked(true);
+        }
+        else
+        {
+             ui.additionalCommandsTextEdit->appendPlainText(line);
         }
     }while (!line.isNull());
     file.close();
@@ -222,6 +250,11 @@ void MainWindow::on_applyOutputsButton_clicked(bool checked)
     addOutputsToScript();
 }
 
+void MainWindow::on_applyCommandButton_clicked(bool checked)
+{
+    addOutputsToScript();
+}
+
 void MainWindow::addOutputsToScript()
 {
     //make list of file types and names to be included
@@ -269,93 +302,94 @@ void MainWindow::addOutputsToScript()
     QString original;
     QStringList dataLine;
     dataLine.clear();
+    original.clear();
 
-
-    do {            // SOMETHING NOT QUITE RIGHT HERE AS ADDS AN ADDITIONAL BLANK LINE AT END OF FILE EACH TIME REMOVE ALL OUTPUTS FROM FILE***************************************************
+    //get 'header' without anything else
+#ifdef _WIN32
+    for (int i = 0; i < 4; i++) //remove all entries in script file
+#else
+    for (int i = 0; i < 5; i++) //remove all entries in script file
+#endif
+    {
         line = stream.readLine();
-        dataLine = line.split(" ", QString::SkipEmptyParts);
         original.append(line+"\n");
-        if (line.contains("chains")             //remove all entries in script file
-                || line.contains("clusters")
-                || line.contains("coord")
-                || line.contains("mapgr")
-                || line.contains("partials")
-                || line.contains("rings")
-                || line.contains("sdf")
-                || line.contains("sdfcube")
-                || line.contains("sharm")
-                || line.contains("torangles")
-                || line.contains("triangles")
-                || line.contains("voids")
-                || line.contains("writexyz"))
+    }
+
+    //add output routines to be included
+    if (!outputFileNames.isEmpty())
+    {
+        for (int i = 0; i < outputFileNames.count(); i++)
         {
-            original.remove(line+"\n");
+            QString outputFileName = outputFileNames.at(i);
+            QString outputFileType = outputFileTypes.at(i);
+#ifdef _WIN32
+            lineToAdd = "%EPSRbin%"+outputFileType+".exe %EPSRrun% "+outputFileType+" "+outputFileName+"\n";
+#else
+            lineToAdd = "  \"$EPSRbin\"'"+outputFileType+"' \"$EPSRrun\" "+outputFileType+" "+outputFileName+"\n";
+#endif
+            original.append(lineToAdd);
+        }
+    }
+
+    //add writexyz if ticked
+    if (ui.dlputilsOutCheckBox->isChecked() == true)
+    {
+        //get box side length and divide by 2 to get value for bat file **Alan sugggested add 10% to this to be certain to get any molecule that is right on the very edge of the box
+        double boxLengthA = ui.boxAtoLengthA->text().toDouble();
+        double boxLengthB = ui.boxAtoLengthB->text().toDouble();
+        double boxLengthC = ui.boxAtoLengthC->text().toDouble();
+        double halfboxLengthA = boxLengthA/2;
+        double halfboxLengthB;
+        double halfboxLengthC;
+        if (ui.boxAtoLengthB->text().isEmpty())
+        {
+            halfboxLengthB = halfboxLengthA;
+        }
+        else
+        {
+            halfboxLengthB = boxLengthB/2;
+        }
+        if (ui.boxAtoLengthC->text().isEmpty())
+        {
+            halfboxLengthC = halfboxLengthA;
+        }
+        else
+        {
+            halfboxLengthC = boxLengthC/2;
         }
 
-        //once get to the 'last' line of the script part, add in the list of filenames to include
-        if (!outputFileNames.isEmpty() || ui.dlputilsOutCheckBox->isChecked() == true)
-        {
+        QString halfboxLengthAStr = QString::number(halfboxLengthA);
+        QString halfboxLengthBStr = QString::number(halfboxLengthB);
+        QString halfboxLengthCStr = QString::number(halfboxLengthC);
+        QString atoBaseFileName = atoFileName_.split(".",QString::SkipEmptyParts).at(0);
 #ifdef _WIN32
-            if (line.contains("if not exist"))
+        lineToAdd = "%EPSRbin%writexyz.exe %EPSRrun% writexyz "+atoBaseFileName+" y 0 "+halfboxLengthAStr+" "+halfboxLengthBStr+" -"+halfboxLengthCStr+" "+halfboxLengthCStr+" 0 0 0 0\n";
 #else
-            if (line.contains("if ([ -e"))
+        lineToAdd = "  \"$EPSRbin\"'writexyz' \"$EPSRrun\" writexyz "+atoBaseFileName+" y 0 "+halfboxLengthAStr+" "+halfboxLengthBStr+" -"+halfboxLengthCStr+" "+halfboxLengthCStr+" 0 0 0 0\n";
 #endif
-            {
-                original.remove(line+"\n");
-                for (int i = 0; i < outputFileNames.count(); i++)
-                {
-                    QString outputFileName = outputFileNames.at(i);
-                    QString outputFileType = outputFileTypes.at(i);
-#ifdef _WIN32
-                    lineToAdd = "%EPSRbin%"+outputFileType+".exe "+workingDir_+" "+outputFileType+" "+outputFileName+"\n";
-#else
-                    lineToAdd = "  \"$EPSRbin\"'"+outputFileType+"' "+workingDir_+" "+outputFileType+" "+outputFileName+"\n";
-#endif
-                    original.append(lineToAdd);
-                }
-                if (ui.dlputilsOutCheckBox->isChecked() == true)
-                {
-                    //get box side length and divide by 2 to get value for bat file **Alan sugggested add 10% to this to be certain to get any molecule that is right on the very edge of the box
-                    double boxLengthA = ui.boxAtoLengthA->text().toDouble();
-                    double boxLengthB = ui.boxAtoLengthB->text().toDouble();
-                    double boxLengthC = ui.boxAtoLengthC->text().toDouble();
-                    double halfboxLengthA = boxLengthA/2;
-                    double halfboxLengthB;
-                    double halfboxLengthC;
-                    if (ui.boxAtoLengthB->text().isEmpty())
-                    {
-                        halfboxLengthB = halfboxLengthA;
-                    }
-                    else
-                    {
-                        halfboxLengthB = boxLengthB/2;
-                    }
-                    if (ui.boxAtoLengthC->text().isEmpty())
-                    {
-                        halfboxLengthC = halfboxLengthA;
-                    }
-                    else
-                    {
-                        halfboxLengthC = boxLengthC/2;
-                    }
+        original.append(lineToAdd);
+    }
 
-                    QString halfboxLengthAStr = QString::number(halfboxLengthA);
-                    QString halfboxLengthBStr = QString::number(halfboxLengthB);
-                    QString halfboxLengthCStr = QString::number(halfboxLengthC);
-                    QString atoBaseFileName = atoFileName_.split(".",QString::SkipEmptyParts).at(0);
-#ifdef _WIN32
-                    lineToAdd = "%EPSRbin%writexyz.exe "+workingDir_+" writexyz "+atoBaseFileName+" y 0 "+halfboxLengthAStr+" "+halfboxLengthBStr+" -"+halfboxLengthCStr+" "+halfboxLengthCStr+" 0 0 0 0\n";
-#else
-                    lineToAdd = "  \"$EPSRbin\"'writexyz' "+workingDir_+" writexyz "+atoBaseFileName+" y 0 "+halfboxLengthAStr+" "+halfboxLengthBStr+" -"+halfboxLengthCStr+" "+halfboxLengthCStr+" 0 0 0 0\n";
-#endif
-                    original.append(lineToAdd);
-                }
-                original.append(line+"\n"); //need the \n here otherwise messes up linux script
-            }
-        }
-    } while (!line.isNull());
+    //add additional commands if not empty
+    if (!ui.additionalCommandsTextEdit->toPlainText().isEmpty())
+    {
+        original.append(ui.additionalCommandsTextEdit->toPlainText()+"\n");
+    }
 
+    //add 'footer'
+#ifdef _WIN32
+    original.append("if not exist %EPSRrun%killepsr ( goto loop ) else del %EPSRrun%killepsr\n");
+#else
+    original.append("  if ([ -e \"$EPSRrun\"killepsr ])\n");
+    original.append("  then break\n");
+    original.append("  fi\n");
+    original.append("done\n");
+    original.append("rm -r \"$EPSRrun\"killepsr\n");
+#endif
+
+    //write to file
     batFile.resize(0);
+    stream.flush();
     stream << original;
     batFile.close();
 
@@ -401,7 +435,7 @@ void MainWindow::setupPlot()
     if (!fi.exists())
     {
 
-        QString coeffFileName = QFileDialog::getOpenFileName(this, "Choose coefficients file", workingDir_, tr(".SHARM.h01 files (*.SHARM.h01)"));
+        QString coeffFileName = QFileDialog::getOpenFileName(this, "Choose coefficients file", workingDir_, tr(".SHARM.h01 files (*.h01)"));
         if (coeffFileName.isEmpty())
         {
             return;

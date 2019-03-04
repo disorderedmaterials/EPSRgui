@@ -22,5 +22,4 @@ public:
     Ui::boxCompositionDialog ui;
 };
 
-#endif // BOXCOMPOSITION
-
+#endif

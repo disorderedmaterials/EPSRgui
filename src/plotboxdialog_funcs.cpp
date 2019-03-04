@@ -15,13 +15,14 @@ PlotBoxDialog::PlotBoxDialog(MainWindow *parent) : QDialog(parent)
     epsrBinDir_ = mainWindow_->epsrBinDir();
 
     QRegExp noNegIntrx("^\\d*$");
-    QRegExp onlyDecrx("^\\d*\\.?\\d*$");
+    QRegExp onlyDecrx("^\\d*\\.?\\d*$");    
+    QRegExp possibleNegDecrx("^-?\\d*\\.?\\d*$");
     QRegExp threeIntrx("^\\d*\\ \\d*\\ \\d*$");
     ui.plotAtoCentreLineEdit->setValidator((new QRegExpValidator(noNegIntrx, this)));
     ui.plotAtoMaxXLineEdit->setValidator((new QRegExpValidator(onlyDecrx, this)));
     ui.plotAtoMaxYLineEdit->setValidator((new QRegExpValidator(onlyDecrx, this)));
     ui.plotAtoMaxZLineEdit->setValidator((new QRegExpValidator(onlyDecrx, this)));
-    ui.plotAtoMinZLineEdit->setValidator((new QRegExpValidator(onlyDecrx, this)));
+    ui.plotAtoMinZLineEdit->setValidator((new QRegExpValidator(possibleNegDecrx, this)));
     ui.plotAtoRotLineEdit->setValidator((new QRegExpValidator(threeIntrx, this)));
 
     ui.atoAtomList->clear();
@@ -95,7 +96,7 @@ void PlotBoxDialog::on_plotBoxButton_clicked(bool checked)
         QTextStream stream(&jmolFile);
         stream << "set EPSRbin=" << epsrBinDir_ << "\n"
                << "set EPSRrun=" << workingDir_ << "\n"
-               << "%EPSRbin%plotato.exe " << workingDir_ << " plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+listExcAtoms << "\n";
+               << "%EPSRbin%plotato.exe %EPSRrun% plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+listExcAtoms << "\n";
         jmolFile.close();
     }
     else
@@ -103,7 +104,7 @@ void PlotBoxDialog::on_plotBoxButton_clicked(bool checked)
         QTextStream stream(&jmolFile);
         stream << "set EPSRbin=" << epsrBinDir_ << "\n"
                << "set EPSRrun=" << workingDir_ << "\n"
-               << "%EPSRbin%plotato.exe " << workingDir_ << " plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+maxDist << " "+rotCoord << " "+listExcAtoms << "\n";
+               << "%EPSRbin%plotato.exe %EPSRrun% plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+maxDist << " "+rotCoord << " "+listExcAtoms << "\n";
         jmolFile.close();
     }
 #else
@@ -112,7 +113,7 @@ void PlotBoxDialog::on_plotBoxButton_clicked(bool checked)
         QTextStream stream(&jmolFile);
         stream << "export EPSRbin=" << epsrBinDir_ << "\n"
                << "export EPSRrun=" << workingDir_ << "\n"
-               << "\"$EPSRbin\"'plotato' " << workingDir_ << " plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+listExcAtoms << "\n";
+               << "\"$EPSRbin\"'plotato' \"$EPSRrun\" plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+listExcAtoms << "\n";
         jmolFile.close();
     }
     else
@@ -120,7 +121,7 @@ void PlotBoxDialog::on_plotBoxButton_clicked(bool checked)
         QTextStream stream(&jmolFile);
         stream << "export EPSRbin=" << epsrBinDir_ << "\n"
                << "export EPSRrun=" << workingDir_ << "\n"
-               << "\"$EPSRbin\"'plotato' " << workingDir_ << " plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+maxDist << " "+rotCoord << " "+listExcAtoms << "\n";
+               << "\"$EPSRbin\"'plotato' \"$EPSRrun\" plotato " << atoBaseFileName << " 3" << " "+plotCentre << " "+maxDist << " "+rotCoord << " "+listExcAtoms << "\n";
         jmolFile.close();
     }
 #endif

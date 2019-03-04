@@ -18,8 +18,8 @@ NotesDialog::NotesDialog(MainWindow *parent) : QDialog(parent)
     Qt::WindowFlags flags = Qt::Window | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint;
     this->setWindowFlags(flags);
 
+    ui.notesTextEdit->clear();
     readNotes();
-
 }
 
 void NotesDialog::on_saveButton_clicked(bool checked)

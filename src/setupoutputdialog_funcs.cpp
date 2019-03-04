@@ -571,7 +571,7 @@ void SetupOutputDialog::on_deleteOutputButton_clicked(bool checked)
 
 void SetupOutputDialog::on_browseButton_clicked(bool checked)
 {
-    QString coeffFileName = QFileDialog::getOpenFileName(this, "Choose coefficients file", workingDir_, tr(".SHARM.h01 files (*.SHARM.h01)"));
+    QString coeffFileName = QFileDialog::getOpenFileName(this, "Choose coefficients file", workingDir_, tr(".SHARM.h01 files (*.h01)"));
     if (!coeffFileName.isEmpty())
     {
         coeffFileName_ = coeffFileName;

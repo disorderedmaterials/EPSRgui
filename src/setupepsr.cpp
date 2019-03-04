@@ -59,7 +59,7 @@ void MainWindow::on_setupEPSRButton_clicked(bool checked)
             QString wtsFileName = fileInfo2.fileName();
             processEPSR_.write(qPrintable(wtsFileName+"\n\n"));            //get from column 3 in wts file table
 
-            QString dataType = dataFileTypeList.at(file);
+            QString dataType = "5";     //assume nrtype 5 which can then be changed by user
             processEPSR_.write(qPrintable(dataType+"\n\n"));
 
             processEPSR_.write("\n\n\n\n");
@@ -96,6 +96,7 @@ void MainWindow::on_setupEPSRButton_clicked(bool checked)
     ui.setupOutButton->setEnabled(true);
     ui.setupPlotButton->setEnabled(true);
     ui.applyOutputsButton->setEnabled(true);
+    ui.applyCommandButton->setEnabled(true);
     ui.dlputilsOutCheckBox->setEnabled(true);
     ui.deleteEPSRinpFileAct->setEnabled(true);
 
@@ -219,7 +220,16 @@ void MainWindow::updateInpFileTables()
         QTableWidgetItem *itemkeyword = new QTableWidgetItem(inpKeywords.at(i));
         itemkeyword->setFlags(itemkeyword->flags() & ~Qt::ItemIsEditable);
         ui.inpSettingsTable->setItem(i,0, itemkeyword);
-        ui.inpSettingsTable->setItem(i,1, new QTableWidgetItem(inpValues.at(i)));
+        if (inpKeywords.at(i) == "fnameato" || inpKeywords.at(i) == "fnamepcof")
+        {
+            QTableWidgetItem *itemvalue = new QTableWidgetItem(inpValues.at(i));
+            itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+            ui.inpSettingsTable->setItem(i,1, itemvalue);
+        }
+        else
+        {
+            ui.inpSettingsTable->setItem(i,1, new QTableWidgetItem(inpValues.at(i)));
+        }
         QTableWidgetItem *itemdescrip = new QTableWidgetItem(inpDescriptions.at(i));
         itemdescrip->setFlags(itemdescrip->flags() & ~Qt::ItemIsEditable);
         ui.inpSettingsTable->setItem(i,2, itemdescrip);
@@ -239,28 +249,77 @@ void MainWindow::updateInpFileTables()
     int row = 0;
     for (int n = 0; n < nDatasets; ++n)
     {
-        ui.dataFileSettingsTable->setItem(row,0, new QTableWidgetItem("datafile"));
-        ui.dataFileSettingsTable->setItem(row,1, new QTableWidgetItem(datafilesettings.at(n).datafile));
-        ui.dataFileSettingsTable->setItem(row++,2, new QTableWidgetItem("Name of data file to be fit"));
-        ui.dataFileSettingsTable->setItem(row,0, new QTableWidgetItem("wtsfile"));
-        ui.dataFileSettingsTable->setItem(row,1, new QTableWidgetItem(datafilesettings.at(n).wtsfile));
-        ui.dataFileSettingsTable->setItem(row++,2, new QTableWidgetItem("Name of weights file for this data set"));
-        ui.dataFileSettingsTable->setItem(row,0, new QTableWidgetItem("nrtype"));
+        QTableWidgetItem *itemvalue = new QTableWidgetItem("datafile");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
+        itemvalue = new QTableWidgetItem(datafilesettings.at(n).datafile);
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,1, itemvalue);
+        itemvalue = new QTableWidgetItem("Name of data file to be fit");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row++,2, itemvalue);
+
+        itemvalue = new QTableWidgetItem("wtsfile");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
+        itemvalue = new QTableWidgetItem(datafilesettings.at(n).wtsfile);
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,1, itemvalue);
+        itemvalue = new QTableWidgetItem("Name of weights file for this data set");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row++,2, itemvalue);
+
+        itemvalue = new QTableWidgetItem("nrtype");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
         ui.dataFileSettingsTable->setItem(row,1, new QTableWidgetItem(datafilesettings.at(n).nrtype));
-        ui.dataFileSettingsTable->setItem(row++,2, new QTableWidgetItem("Data type - see User Manual for more details"));
-        ui.dataFileSettingsTable->setItem(row,0, new QTableWidgetItem("rshmin"));
+        itemvalue = new QTableWidgetItem("Data type - see User Manual for more details");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row++,2, itemvalue);
+
+        itemvalue = new QTableWidgetItem("rshmin");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
         ui.dataFileSettingsTable->setItem(row,1, new QTableWidgetItem(datafilesettings.at(n).rshmin));
-        ui.dataFileSettingsTable->setItem(row++,2, new QTableWidgetItem("Minimum radius [A] - used for background subtraction"));
-        ui.dataFileSettingsTable->setItem(row,0, new QTableWidgetItem("szeros"));
+        itemvalue = new QTableWidgetItem("Minimum radius [A] - used for background subtractions");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row++,2, itemvalue);
+
+        itemvalue = new QTableWidgetItem("szeros");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
         ui.dataFileSettingsTable->setItem(row,1, new QTableWidgetItem(datafilesettings.at(n).szeros));
-        ui.dataFileSettingsTable->setItem(row++,2, new QTableWidgetItem("Zero limit - 0 means use first data point for Q=0"));
-        ui.dataFileSettingsTable->setItem(row,0, new QTableWidgetItem("tweak"));
+        itemvalue = new QTableWidgetItem("Zero limit - 0 means use first data point for Q=0");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row++,2, itemvalue);
+
+        itemvalue = new QTableWidgetItem("tweak");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
         ui.dataFileSettingsTable->setItem(row,1, new QTableWidgetItem(datafilesettings.at(n).tweak));
-        ui.dataFileSettingsTable->setItem(row++,2, new QTableWidgetItem("Scaling factor for this data set. [1.0]"));
-        ui.dataFileSettingsTable->setItem(row,0, new QTableWidgetItem("efilereq"));
+        itemvalue = new QTableWidgetItem("Scaling factor for this data set. [1.0]");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row++,2, itemvalue);
+
+        itemvalue = new QTableWidgetItem("efilereq");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
         ui.dataFileSettingsTable->setItem(row,1, new QTableWidgetItem(datafilesettings.at(n).efilereq));
-        ui.dataFileSettingsTable->setItem(row++,2, new QTableWidgetItem("Requested energy amplitude for this data set [1.0]"));
-        ui.dataFileSettingsTable->insertRow(row++);
+        itemvalue = new QTableWidgetItem("Requested energy amplitude for this data set [1.0]");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row++,2, itemvalue);
+
+        ui.dataFileSettingsTable->insertRow(row);
+        itemvalue = new QTableWidgetItem("");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,0, itemvalue);
+        itemvalue = new QTableWidgetItem("");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,1, itemvalue);
+        itemvalue = new QTableWidgetItem("");
+        itemvalue->setFlags(itemvalue->flags() & ~Qt::ItemIsEditable);
+        ui.dataFileSettingsTable->setItem(row,2, itemvalue);
+        row++;
     }
 
     ui.dataFileSettingsTable->setSelectionBehavior(QAbstractItemView::SelectRows);

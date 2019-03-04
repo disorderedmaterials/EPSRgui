@@ -32,7 +32,8 @@ FORMS += src/addatodialog.ui \
          src/setupoutputdialog.ui \
     src/notesdialog.ui \
     src/removecomponentdialog.ui \
-    src/makemollattdialog.ui
+    src/makemollattdialog.ui \
+    src/exchangeableatomsdialog.ui
 HEADERS += src/addatodialog.h \
            src/array.h \
            src/boxcompositiondialog.h \
@@ -53,7 +54,8 @@ HEADERS += src/addatodialog.h \
            src/setupoutputdialog.h \
     src/notesdialog.h \
     src/removecomponentdialog.h \
-    src/makemollattdialog.h
+    src/makemollattdialog.h \
+    src/exchangeableatomsdialog.h
 SOURCES += src/addatodialog_funcs.cpp \
            src/boxatofile.cpp \
            src/boxcompositiondialog_funcs.cpp \
@@ -80,5 +82,6 @@ SOURCES += src/addatodialog_funcs.cpp \
            src/setupoutputdialog_funcs.cpp \
     src/notesdialog_funcs.cpp \
     src/removecomponentdialog_funcs.cpp \
-    src/makemollattdialog_funcs.cpp
+    src/makemollattdialog_funcs.cpp \
+    src/exchangeableatomsdialog.cpp
 RESOURCES += src/EPSRproject.qrc

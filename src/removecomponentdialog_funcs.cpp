@@ -34,7 +34,7 @@ void RemoveComponentDialog::on_cancelButton_clicked(bool checked)
 
 void RemoveComponentDialog::check()
 {
-    if (ui.componentList->count() <= 2)
+    if (ui.componentList->count() < 2)
     {
         QMessageBox msgBox;
         msgBox.setText("This is the only component in the box so cannot be removed");

@@ -11,12 +11,12 @@ void MainWindow::on_plot1Button_clicked()
     plot1();
 }
 
-bool MainWindow::plot1()
+void MainWindow::plot1()
 {
     ui.plot1->clearGraphs();
-    ui.plot1->clearPlottables();
     ui.plot1->clearItems();
-    return getplottype1();
+    ui.plot1->clearPlottables();
+    getplottype1();
 }
 
 bool MainWindow::getplottype1()
@@ -232,7 +232,6 @@ bool MainWindow::fqplot1()
     }
     QTextStream streamDF(&fileDF);
     QString lineDF;
-//    QStringList dataNames;
     QStringList dataLineDF;
     QVector< QVector<double> > xDF;
     QVector< QVector<double> > columnsDF;
@@ -242,7 +241,6 @@ bool MainWindow::fqplot1()
     xDF.resize(nDataCol);
     columnsDF.resize(nDataCol);
     lineDF = streamDF.readLine();
-//    dataNames = lineDF.split(" ", QString::SkipEmptyParts);
     do
     {
         lineDF = streamDF.readLine();
@@ -315,14 +313,13 @@ bool MainWindow::fqplot1()
         ui.plot1->xAxis->setScaleLogBase(100);
         ui.plot1->xAxis->setNumberFormat("eb");
         ui.plot1->xAxis->setNumberPrecision(0);
-        ui.plot1->xAxis->setSubTickCount(10);
+        ui.plot1->xAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->xAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->xAxis->setNumberFormat("g");
-        ui.plot1->xAxis->setNumberPrecision(2);
-        ui.plot1->xAxis->setAutoTickStep(true);
+        ui.plot1->xAxis->setNumberPrecision(9);
+        ui.plot1->xAxis->setNumberFormat("gb");
     }
     if (ui.plot1LogY->isChecked() == true)
     {
@@ -330,14 +327,13 @@ bool MainWindow::fqplot1()
         ui.plot1->yAxis->setScaleLogBase(100);
         ui.plot1->yAxis->setNumberFormat("eb");
         ui.plot1->yAxis->setNumberPrecision(0);
-        ui.plot1->yAxis->setSubTickCount(10);
+        ui.plot1->yAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->yAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->yAxis->setNumberFormat("g");
-        ui.plot1->yAxis->setNumberPrecision(2);
-        ui.plot1->yAxis->setAutoTickStep(true);
+        ui.plot1->yAxis->setNumberPrecision(9);
+        ui.plot1->yAxis->setNumberFormat("gb");
     }
 
     // give the axes some labels:
@@ -348,6 +344,7 @@ bool MainWindow::fqplot1()
 //    ui.plot1->legend->setVisible(true);
 
     //plot
+    ui.plot1->rescaleAxes();
     ui.plot1->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
     ui.plot1->xAxis->setRangeLower(xMin);
     ui.plot1->xAxis->setRangeUpper(xMax);
@@ -542,14 +539,13 @@ bool MainWindow::frplot1()
         ui.plot1->xAxis->setScaleLogBase(100);
         ui.plot1->xAxis->setNumberFormat("eb");
         ui.plot1->xAxis->setNumberPrecision(0);
-        ui.plot1->xAxis->setSubTickCount(10);
+        ui.plot1->xAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->xAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->xAxis->setNumberFormat("g");
-        ui.plot1->xAxis->setNumberPrecision(2);
-        ui.plot1->xAxis->setAutoTickStep(true);
+        ui.plot1->xAxis->setNumberPrecision(9);
+        ui.plot1->xAxis->setNumberFormat("gb");
     }
     if (ui.plot1LogY->isChecked() == true)
     {
@@ -557,14 +553,13 @@ bool MainWindow::frplot1()
         ui.plot1->yAxis->setScaleLogBase(100);
         ui.plot1->yAxis->setNumberFormat("eb");
         ui.plot1->yAxis->setNumberPrecision(0);
-        ui.plot1->yAxis->setSubTickCount(10);
+        ui.plot1->yAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->yAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->yAxis->setNumberFormat("g");
-        ui.plot1->yAxis->setNumberPrecision(2);
-        ui.plot1->yAxis->setAutoTickStep(true);
+        ui.plot1->yAxis->setNumberPrecision(9);
+        ui.plot1->yAxis->setNumberFormat("gb");
     }
 
     // give the axes some labels:
@@ -572,6 +567,7 @@ bool MainWindow::frplot1()
     ui.plot1->yAxis->setLabel("G(r)");
 
     //plot
+    ui.plot1->rescaleAxes();
     ui.plot1->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
     ui.plot1->xAxis->setRangeLower(xMin);
     ui.plot1->xAxis->setRangeUpper(xMax);
@@ -623,14 +619,13 @@ bool MainWindow::Eplot1()
         ui.plot1->xAxis->setScaleLogBase(100);
         ui.plot1->xAxis->setNumberFormat("eb");
         ui.plot1->xAxis->setNumberPrecision(0);
-        ui.plot1->xAxis->setSubTickCount(10);
+        ui.plot1->xAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->xAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->xAxis->setNumberFormat("g");
-        ui.plot1->xAxis->setNumberPrecision(3);
-        ui.plot1->xAxis->setAutoTickStep(true);
+        ui.plot1->xAxis->setNumberPrecision(9);
+        ui.plot1->xAxis->setNumberFormat("gb");
     }
     if (ui.plot1LogY->isChecked() == true)
     {
@@ -638,14 +633,13 @@ bool MainWindow::Eplot1()
         ui.plot1->yAxis->setScaleLogBase(100);
         ui.plot1->yAxis->setNumberFormat("eb");
         ui.plot1->yAxis->setNumberPrecision(0);
-        ui.plot1->yAxis->setSubTickCount(10);
+        ui.plot1->yAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->yAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->yAxis->setNumberFormat("g");
-        ui.plot1->yAxis->setNumberPrecision(3);
-        ui.plot1->yAxis->setAutoTickStep(true);
+        ui.plot1->yAxis->setNumberPrecision(9);
+        ui.plot1->yAxis->setNumberFormat("gb");
     }
 
     // give the axes some labels:
@@ -701,14 +695,13 @@ bool MainWindow::Rplot1()
         ui.plot1->xAxis->setScaleLogBase(100);
         ui.plot1->xAxis->setNumberFormat("eb");
         ui.plot1->xAxis->setNumberPrecision(0);
-        ui.plot1->xAxis->setSubTickCount(10);
+        ui.plot1->xAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->xAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->xAxis->setNumberFormat("g");
-        ui.plot1->xAxis->setNumberPrecision(3);
-        ui.plot1->xAxis->setAutoTickStep(true);
+        ui.plot1->xAxis->setNumberPrecision(9);
+        ui.plot1->xAxis->setNumberFormat("gb");
     }
     if (ui.plot1LogY->isChecked() == true)
     {
@@ -716,14 +709,13 @@ bool MainWindow::Rplot1()
         ui.plot1->yAxis->setScaleLogBase(100);
         ui.plot1->yAxis->setNumberFormat("eb");
         ui.plot1->yAxis->setNumberPrecision(0);
-        ui.plot1->yAxis->setSubTickCount(10);
+        ui.plot1->yAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->yAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->yAxis->setNumberFormat("g");
-        ui.plot1->yAxis->setNumberPrecision(3);
-        ui.plot1->yAxis->setAutoTickStep(true);
+        ui.plot1->yAxis->setNumberPrecision(9);
+        ui.plot1->yAxis->setNumberFormat("gb");
     }
 
     // give the axes some labels:
@@ -779,14 +771,13 @@ bool MainWindow::Pplot1()
         ui.plot1->xAxis->setScaleLogBase(100);
         ui.plot1->xAxis->setNumberFormat("eb");
         ui.plot1->xAxis->setNumberPrecision(0);
-        ui.plot1->xAxis->setSubTickCount(10);
+        ui.plot1->xAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->xAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->xAxis->setNumberFormat("g");
-        ui.plot1->xAxis->setNumberPrecision(3);
-        ui.plot1->xAxis->setAutoTickStep(true);
+        ui.plot1->xAxis->setNumberPrecision(9);
+        ui.plot1->xAxis->setNumberFormat("gb");
     }
     if (ui.plot1LogY->isChecked() == true)
     {
@@ -794,14 +785,13 @@ bool MainWindow::Pplot1()
         ui.plot1->yAxis->setScaleLogBase(100);
         ui.plot1->yAxis->setNumberFormat("eb");
         ui.plot1->yAxis->setNumberPrecision(0);
-        ui.plot1->yAxis->setSubTickCount(10);
+        ui.plot1->yAxis->setSubTickCount(9);
     }
     else
     {
         ui.plot1->yAxis->setScaleType(QCPAxis::stLinear);
-        ui.plot1->yAxis->setNumberFormat("g");
-        ui.plot1->yAxis->setNumberPrecision(3);
-        ui.plot1->yAxis->setAutoTickStep(true);
+        ui.plot1->yAxis->setNumberPrecision(9);
+        ui.plot1->yAxis->setNumberFormat("gb");
     }
 
     // give the axes some labels:
@@ -904,6 +894,13 @@ bool MainWindow::Ereqplot1()
     ui.plot1->graph(0)->setLineStyle(QCPGraph::lsNone);
     ui.plot1->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 3));
 
+    ui.plot1->xAxis->setScaleType(QCPAxis::stLinear);
+    ui.plot1->xAxis->setNumberPrecision(9);
+    ui.plot1->xAxis->setNumberFormat("gb");
+    ui.plot1->yAxis->setScaleType(QCPAxis::stLinear);
+    ui.plot1->yAxis->setNumberPrecision(9);
+    ui.plot1->yAxis->setNumberFormat("gb");
+
     // give the axes some labels:
     ui.plot1->xAxis->setLabel("ereq energy");
     ui.plot1->yAxis->setLabel("quality of fit");
@@ -919,8 +916,6 @@ void MainWindow::showPointToolTip1(QMouseEvent *event)
 {
     double x1 = this->ui.plot1->xAxis->pixelToCoord(event->pos().x());
     double y1 = this->ui.plot1->yAxis->pixelToCoord(event->pos().y());
-
-//    setToolTip(QString("%1 , %2").arg(x).arg(y));
 
     QString x1str;
     x1str.sprintf(" %5g", x1);

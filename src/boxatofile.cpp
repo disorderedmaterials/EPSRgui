@@ -285,10 +285,24 @@ void MainWindow::on_addatoButton_clicked(bool checked)
 
         if (!processEPSR_.waitForFinished(1800000)) return;
 
-        //read ato file to check what has happened
+        //run fmole 0 times to move the components into the expected order in the LJ table and density list at bottom of ato file
+        QDir::setCurrent(workingDir_);
+
+        QString atoBaseFileName = atoFileName_.split(".",QString::SkipEmptyParts).at(0);
+
+    #ifdef _WIN32
+        processEPSR_.start(epsrBinDir_+"fmole.exe", QStringList() << workingDir_ << "fmole" << atoBaseFileName << "0" << "0");
+    #else
+        processEPSR_.start(epsrBinDir_+"fmole", QStringList() << workingDir_ << "fmole" << atoBaseFileName << "0" << "0");
+    #endif
+        if (!processEPSR_.waitForStarted()) return;
+
+        if (!processEPSR_.waitForFinished()) return;
+
+        //read ato file to see what happened
         readAtoFileBoxDetails();
 
-        //if the number of first atoms is different to the number of components in the atofiletable, then assume unsuccessful
+        //if the number of first atoms is different to the number of components in the atofiletable, then assume unsuccessful as 0 added
         if (firstAtomList.count() != ui.atoFileTable->rowCount())
         {
             //roll back to previous box.ato file
@@ -307,6 +321,9 @@ void MainWindow::on_addatoButton_clicked(bool checked)
                 }
             }
 
+            //read in old ato file
+            readAtoFileBoxDetails();
+
             messageText_ += "\nAddato unsuccessful\n";
             messagesDialog.refreshMessages();
             ui.messagesLineEdit->setText("Addato unsuccessful");
@@ -317,35 +334,27 @@ void MainWindow::on_addatoButton_clicked(bool checked)
             return;
         }
 
-        //otherwise update everything accordingly
         messageText_ += "\nAddato successful - finished writing "+atoFileName_+" file\n";
         messagesDialog.refreshMessages();
         ui.messagesLineEdit->setText("Addato successful - Finished writing box .ato file");
 
-        //roll back to previous box.ato file
+        //remove copy of box.ato file
         QFile::remove(workingDir_+atoFileName_+".copy");
 
         //update ui.atoFileTable to include number of mols added for relevant .ato files
-        if (container != atoFileName_)
-        {
-            for (int i = 0; i < ui.atoFileTable->rowCount(); i++)
-            {
-                if (ui.atoFileTable->item(i,0)->text() == container)
-                {
-                    ui.atoFileTable->item(i,2)->setText("1");
-                }
-            }
-        }
-
+//        if (container != atoFileName_)
+//        {
+//            for (int i = 0; i < ui.atoFileTable->rowCount(); i++)
+//            {
+//                if (ui.atoFileTable->item(i,0)->text() == container)
+//                {
+//                    ui.atoFileTable->item(i,2)->setText("1");
+//                }
+//            }
+//        }
         for (int i = 0; i < ui.atoFileTable->rowCount(); i++)
         {
-            for (int j = 0; j < atoFilesToAdd.count(); j++)
-            {
-                if (atoFilesToAdd.at(j) == ui.atoFileTable->item(i,0)->text())
-                {
-                    ui.atoFileTable->item(i,2)->setText(numberOfMolecules.at(j));
-                }
-            }
+            ui.atoFileTable->item(i,2)->setText(QString::number(nInBox.at(i)));
         }
 
         ui.boxAtoLabel->setText(atoFileName_);
@@ -422,21 +431,17 @@ void MainWindow::on_loadBoxButton_clicked (bool checked)
             }
         }
 
-        //run changeato to make sure it is in the correct format
+        //run fmole 0 times to make sure everything is consistent and update ato with dihedrals etc
         QDir::setCurrent(workingDir_);
         QString atoBaseFileName = atoFileName_.split(".",QString::SkipEmptyParts).at(0);
 
-        processEPSR_.setProcessChannelMode(QProcess::ForwardedChannels);
     #ifdef _WIN32
-        processEPSR_.start(epsrBinDir_+"changeato.exe", QStringList() << workingDir_ << "changeato" << atoBaseFileName);
+        processEPSR_.start(epsrBinDir_+"fmole.exe", QStringList() << workingDir_ << "fmole" << atoBaseFileName << "0" << "0");
     #else
-        processEPSR_.startDetached(epsrBinDir_+"changeato", QStringList() << workingDir_ << "changeato" << atoBaseFileName);
+        processEPSR_.start(epsrBinDir_+"fmole", QStringList() << workingDir_ << "fmole" << atoBaseFileName << "0" << "0");
     #endif
         if (!processEPSR_.waitForStarted()) return;
-        processEPSR_.write("e\n");
-        processEPSR_.write("\n");
-        processEPSR_.write("y\n");
-        if (!processEPSR_.waitForFinished(60000)) return;
+        if (!processEPSR_.waitForFinished()) return;
 
         //get all the details from the box .ato file
         readAtoFileBoxDetails();
@@ -680,6 +685,13 @@ bool MainWindow::readAtoFileBoxDetails()
     line = stream.readLine();
     dataLine = line.split(" ", QString::SkipEmptyParts);
     QString numberMol = dataLine.at(0);
+    if (dataLine.count() == 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Box .ato file is empty.");
+        msgBox.exec();
+        return false;
+    }
     if (dataLine.count() == 3)
     {
         double boxLength = dataLine.at(1).toDouble();
@@ -750,6 +762,13 @@ bool MainWindow::readAtoFileBoxDetails()
     }
     line = stream.readLine();
     dataLine = line.split("  ", QString::SkipEmptyParts);
+    if (dataLine.count() < 8)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Box .ato file is corrupt (line 2)");
+        msgBox.exec();
+        return false;
+    }
     ui.atoTetherTolLineEdit->setText(dataLine.at(0).trimmed());
     ui.intraTransSSLineEdit->setText(dataLine.at(1));
     ui.grpRotSSLineEdit->setText(dataLine.at(2));
@@ -765,6 +784,7 @@ bool MainWindow::readAtoFileBoxDetails()
     tetherAtoms.clear();
     tetherList.clear();
     int atomctr = 0;
+    int qatomctr = 0;
     atoComponentList.clear();
     atoAtomTypes.clear();
     numberAtomTypes.clear();
@@ -778,6 +798,14 @@ bool MainWindow::readAtoFileBoxDetails()
         line = stream.readLine();
         dataLine = line.split(" ",QString::SkipEmptyParts);
         lineCtr++;
+        if (dataLine.count() == 0)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Box .ato file is corrupt");
+            msgBox.exec();
+            return false;
+        }
+        else
         if (dataLine.count() > 9)
         {
             if (line.contains("T") == true || line.contains("F") == true)
@@ -820,6 +848,10 @@ bool MainWindow::readAtoFileBoxDetails()
         if (atomLabelrx.exactMatch(line))
         {
             atomctr++;
+            if (line.contains("q") || line.contains("Q"))
+            {
+                qatomctr++;
+            }
             dataLine = line.split("  ", QString::SkipEmptyParts);
             QString data = dataLine.at(0).trimmed();
             if (atoAtomTypes.isEmpty())
@@ -887,7 +919,7 @@ bool MainWindow::readAtoFileBoxDetails()
     lastInstance.clear();
     firstInstance.append(1);
     lastInstance.append(nInBox.at(0));
-    for (int i = 1; i < ui.molFileList->count(); i++) //write atoFileList and then change this to atoFileList******************************************
+    for (int i = 1; i < atoComponentList.count(); i++) //write atoFileList and then change this to atoFileList******************************************
     {
         firstInstance.append(lastInstance.at(i-1)+1);
         lastInstance.append(firstInstance.at(i)+nInBox.at(i)-1);
@@ -895,8 +927,7 @@ bool MainWindow::readAtoFileBoxDetails()
 
     //get number of lines for each component
     nLinesPerComponentList.clear();
-    fullnLinesPerComponentList.removeAt(0);
-    for (int i = 0; i < ui.molFileList->count(); i++) //write atoFileList and then change this to atoFileList******************************************
+    for (int i = 0; i < atoComponentList.count(); i++) //write atoFileList and then change this to atoFileList******************************************
     {
         nLinesPerComponentList.append(fullnLinesPerComponentList.at(firstInstance.at(i)));
     }
@@ -914,7 +945,7 @@ bool MainWindow::readAtoFileBoxDetails()
     }
 
     //calculate atomic number density and input into box
-    double totalNumberAtoms = ui.boxAtoAtoms->text().toDouble();
+    double totalNumberAtoms = ui.boxAtoAtoms->text().toDouble()-qatomctr; //number of atoms minus the q/Q atoms
     double boxVolume = ui.boxAtoVol->text().toDouble();
     double numberDensity = totalNumberAtoms/boxVolume;
     QString numberDensityStr;
@@ -981,6 +1012,13 @@ void MainWindow::on_updateAtoFileButton_clicked(bool checked)
         msgBox.setText("One of the parameters defining the simulation box is missing");
         msgBox.exec();
         return;
+    }
+
+    //convert any lower case f/t to upper case
+    for (int i = 0; i < ui.atoTetherTable->rowCount(); i++)
+    {
+        QString tetherAtom = ui.atoTetherTable->item(i,1)->text().toUpper();
+        ui.atoTetherTable->setItem(i,1, new QTableWidgetItem(tetherAtom));
     }
 
     QRegExp noNegIntrx("^\\d*$");
@@ -1150,6 +1188,20 @@ void MainWindow::on_updateAtoFileButton_clicked(bool checked)
     QFile::remove(workingDir_+atoFileName_);
     QFile::rename(workingDir_+"temp.txt", workingDir_+atoFileName_);
 
+    //run fmole 0 times to make sure everything is consistent and update ato with dihedrals etc
+    QDir::setCurrent(workingDir_);
+
+    QString atoBaseFileName = atoFileName_.split(".",QString::SkipEmptyParts).at(0);
+
+#ifdef _WIN32
+    processEPSR_.start(epsrBinDir_+"fmole.exe", QStringList() << workingDir_ << "fmole" << atoBaseFileName << "0" << "0");
+#else
+    processEPSR_.start(epsrBinDir_+"fmole", QStringList() << workingDir_ << "fmole" << atoBaseFileName << "0" << "0");
+#endif
+    if (!processEPSR_.waitForStarted()) return;
+
+    if (!processEPSR_.waitForFinished()) return;
+
     readAtoFileBoxDetails();
 
     messageText_ += "\nbox .ato file updated\n";
@@ -1282,9 +1334,12 @@ void MainWindow::on_removeComponentButton_clicked(bool checked)
         return;
     }
 
-    QMessageBox msgBox;
-    msgBox.setText("After removing a component weights files may need to be remade.");
-    msgBox.exec();
+    if (wtsFileList.count() != 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("After removing a component weights files may need to be remade.");
+        msgBox.exec();
+    }
 
     readAtoFileBoxDetails();
 
@@ -1302,24 +1357,22 @@ void MainWindow::on_removeComponentButton_clicked(bool checked)
         //get component row
         int componentToRemove = removeComponentDialog.returnComponent();  //row is row in atoFileList
 
-        //get range of lines to remove
-        QList<int> totlinesPerComponentList;
-        totlinesPerComponentList.clear();
-        for (int i = 0; i < ui.molFileList->count(); i++) //write atoFileList and then change this to atoFileList******************************************
+        if (ui.atoFileTable->item(componentToRemove,2)->text().toInt() == 0)
         {
-            totlinesPerComponentList.append(nLinesPerComponentList.at(i)*nInBox.at(i));
+            QMessageBox msgBox;
+            msgBox.setText("This component is not present in the simulation box");
+            msgBox.exec();
+            return;
         }
 
-        int firstLineToRemove = atoHeaderLines;
-        for (int i = 0; i < componentToRemove; i++)
-        {
-            firstLineToRemove = firstLineToRemove+totlinesPerComponentList.at(i);
-        }
-        int lastLineToRemove = atoHeaderLines;
-        for (int i = 0; i < componentToRemove+1; i++) //write atoFileList and then change this to atoFileList******************************************
-        {
-            lastLineToRemove = lastLineToRemove+totlinesPerComponentList.at(i);
-        }
+        //get first atom for this component
+        QString componentFirstAtom = firstAtomList.at(componentToRemove);
+
+        //get number of lines for this component
+        int nLinesForComponent = nLinesPerComponentList.at(componentToRemove);
+
+        //total number of components in box
+        int newNumberComponents = ui.boxAtoMols->text().toInt()-nInBox.at(componentToRemove);
 
         //get list of atomTypesToRemove from component.ato file
         QFile fileCompRead(workingDir_+ui.atoFileTable->item(componentToRemove,0)->text());
@@ -1347,9 +1400,7 @@ void MainWindow::on_removeComponentButton_clicked(bool checked)
         } while (!lineComp.isNull());
         fileCompRead.close();
 
-        //calc new number of components present
-        int nTotComponents = ui.boxAtoMols->text().toInt()-nInBox.at(componentToRemove);
-
+        //open box.ato file to read from and a temp file to write to
         QFile fileRead(workingDir_+atoFileName_);
         QFile fileWrite(workingDir_+"temp.txt");
 
@@ -1371,14 +1422,17 @@ void MainWindow::on_removeComponentButton_clicked(bool checked)
         QTextStream streamRead(&fileRead);
         QTextStream streamWrite(&fileWrite);
         QString line;
+        QString secondLine;
         QStringList dataLine;
         dataLine.clear();
-        int lineCtr = atoHeaderLines;
+        QString original;
+        original.clear();
         int componentCtr = 0;
+        QRegExp atomPairrx(" ([A-Z][A-Za-z0-9 ]{2}) ([A-Za-z ]{1,2})   ([0-1]{1})");
 
         //copy over header
         line = streamRead.readLine();
-        line = line.replace(2, 6, " "+QString::number(nTotComponents)); //this isn't the correct formatting*******************************
+        line = line.replace(2, 6, " "+QString::number(newNumberComponents)); //this isn't the correct formatting*******************************
         streamWrite << line << "\n";
         for (int i = 0; i < atoHeaderLines-1; i++)
         {
@@ -1386,26 +1440,41 @@ void MainWindow::on_removeComponentButton_clicked(bool checked)
             streamWrite << line << "\n";
         }
 
-        //copy over lines that aren't in the remove list
-        QRegExp atomPairrx(" ([A-Z][A-Za-z0-9 ]{2}) ([A-Za-z ]{1,2})   ([0-1]{1})");
+        //copy over components to keep
         do {
             line = streamRead.readLine();
-            lineCtr++;
+            dataLine = line.split(" ", QString::SkipEmptyParts);
+
             if (atomPairrx.exactMatch(line))
             {
                 break;
             }
-            if (lineCtr <= firstLineToRemove || lineCtr >= lastLineToRemove+1)
+            if (dataLine.count() == 10)
             {
-                dataLine = line.split(" ", QString::SkipEmptyParts);
-                if (dataLine.count() == 10)
+                secondLine = streamRead.readLine();
+                dataLine = secondLine.split(" ", QString::SkipEmptyParts);
+                if (dataLine.at(0).trimmed() == componentFirstAtom)
+                {
+                    for (int i = 0; i < nLinesForComponent-2; i++)
+                    {
+                        line = streamRead.readLine();
+                    }
+                }
+                else
                 {
                     componentCtr++;
                     line = line.replace(109, 6, " "+QString::number(componentCtr)); //this isn't the correct formatting*******************************
+                    original.append(line+"\n");
+                    original.append(secondLine+"\n");
                 }
-                streamWrite << line << "\n";
             }
-        } while (!line.isNull());
+            else
+            {
+                original.append(line+"\n");
+            }
+        } while(!line.isNull());
+
+        streamWrite << original;
 
         //LJ param section
         for (int i = 0; i < atoAtomTypes.count(); i++)
@@ -1460,20 +1529,27 @@ void MainWindow::on_removeComponentButton_clicked(bool checked)
         streamWrite << line << "\n";
 
         //each component number density ****************this isn't correct but its recalculated when EPSR is run********************************
-        for (int i = 0; i < componentToRemove; i++)
+        for (int i = 0; i < atoAtomTypes.count(); i++)
         {
             line = streamRead.readLine();
-            streamWrite << line << "\n";
-        }
-        line = streamRead.readLine();
-        for (int i = componentToRemove+1; i < ui.molFileList->count(); i++)
-        {
-            line = streamRead.readLine();
-            streamWrite << line << "\n";
+            dataLine = line.split(" ", QString::SkipEmptyParts);
+            int test = 0;
+            for (int j = 0; j < atomTypesToRemove.count(); j++)
+            {
+                if (dataLine.at(3) == atomTypesToRemove.at(j))
+                {
+                    test = 1;
+                }
+            }
+            if (test == 0)
+            {
+                streamWrite << line << "\n";
+            }
         }
 
-        fileRead.close();
+        fileWrite.resize(0);
         fileWrite.close();
+        fileRead.close();
 
         //rename temp file as box .ato file to copy over changes and delete temp file
         QFile::remove(workingDir_+atoFileName_);

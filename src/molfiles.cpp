@@ -119,12 +119,12 @@ void MainWindow::makeMolFile()
         stream << "set EPSRbin=" << epsrBinDir_ << "\n"
                << "set EPSRrun=" << workingDir_ << "\n"
                << "CD " << workingDir_ << "\n"
-               << "%EPSRbin%readmole.exe " << workingDir_ << " readmole .jmol " << jmolBaseFileName << "\n";
+               << "%EPSRbin%readmole.exe %EPSRrun% readmole .jmol " << jmolBaseFileName << "\n";
 #else
         stream << "export EPSRbin=" << epsrBinDir_ << "\n"
                << "export EPSRrun=" << workingDir_ << "\n"
                << "cd " << workingDir_ << "\n"
-               << "\"$EPSRbin\"'readmole' " << workingDir_ << " readmole .jmol " << jmolBaseFileName << "\n";
+               << "\"$EPSRbin\"'readmole' \"$EPSRrun\" readmole .jmol " << jmolBaseFileName << "\n";
 #endif
         jmolBatFile.close();
 
@@ -836,11 +836,11 @@ void MainWindow::on_viewMolFileButton_clicked(bool checked)
 #ifdef _WIN32
         stream << "set EPSRbin=" << epsrBinDir_ << "\n"
                << "set EPSRrun=" << workingDir_ << "\n"
-               << "%EPSRbin%plotato.exe " << workingDir_ << " plotato " << atoBaseFileName << " 3 0 0\n";
+               << "%EPSRbin%plotato.exe %EPSRrun% plotato " << atoBaseFileName << " 3 0 0\n";
 #else
         stream << "export EPSRbin=" << epsrBinDir_ << "\n"
                << "export EPSRrun=" << workingDir_ << "\n"
-               << "\"$EPSRbin\"'plotato' " << workingDir_ << " plotato " << atoBaseFileName << " 3 0 0\n";
+               << "\"$EPSRbin\"'plotato' \"$EPSRrun\" plotato " << atoBaseFileName << " 3 0 0\n";
 #endif
         jmolFile.close();
 
@@ -1636,7 +1636,6 @@ bool MainWindow::updateMolFile()
         }
     }
 
-
     QDir::setCurrent(workingDir_);
 
     QFile fileRead(workingDir_+molFileName_);
@@ -1753,7 +1752,16 @@ bool MainWindow::updateMolFile()
     for (int i = 0; i < ui.molLJTable->rowCount(); ++i)
     {
         //need to pad atom label with a blank space at end (item 0) and charges with a blank space if '-' not present (item 4)
-        streamWrite << "potential " << ui.molLJTable->item(i,0)->text() << "  " << ui.molLJTable->item(i,1)->text() << "  " << ui.molLJTable->item(i,2)->text() << "  " << ui.molLJTable->item(i,3)->text() << " " << ui.molLJTable->item(i,4)->text() << " " << ui.molLJTable->item(i,5)->text() << "\n";
+        QString epsilon;
+        QString sigma;
+        QString aw;
+        QString charge;
+        double epsilonD = ui.molLJTable->item(i,1)->text().toDouble();
+        double sigmaD = ui.molLJTable->item(i,2)->text().toDouble();
+        double awD = ui.molLJTable->item(i,3)->text().toDouble();
+        double chargeD = ui.molLJTable->item(i,4)->text().toDouble();
+        streamWrite << "potential " << ui.molLJTable->item(i,0)->text() << "  " << epsilon.setNum(epsilonD, 'E', 5) << "  " << sigma.setNum(sigmaD, 'E', 5)
+                    << "  " << aw.setNum(awD, 'E', 5) << " " << charge.setNum(chargeD, 'E', 5) << " " << ui.molLJTable->item(i,5)->text() << "\n";
     }
     streamWrite << "temperature  0.300000E+03\n"
               "vibtemp  0.650000E+02\n"
@@ -1915,6 +1923,15 @@ bool MainWindow::updateMolFile()
     messageText_ += "\nfinished updating molecule ato file\n";
     messagesDialog.refreshMessages();
     ui.messagesLineEdit->setText(".mol file updated");
+
+    QSettings settings;
+
+    if (!atoFileName_.isEmpty() && settings.value("fmoleReminder").toInt() != 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Now run fmole to apply the changes to the simulation box.");
+        msgBox.exec();
+    }
 
     return true;
 }

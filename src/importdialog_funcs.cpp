@@ -52,8 +52,11 @@ void ImportDialog::on_browseBoxButton_clicked(bool checked)
     if (!workingDir_.isEmpty())
     {
         boxFileName = QFileDialog::getOpenFileName(this, "Choose simulation box .ato file", workingDir_, tr("box .ato files (*.ato)"));
-        atoFileName_ = QFileInfo(boxFileName).fileName();
-        ui.boxLineEdit->setText(atoFileName_);
+        if (!boxFileName.isEmpty())
+        {
+            atoFileName_ = QFileInfo(boxFileName).fileName();
+            ui.boxLineEdit->setText(atoFileName_);
+        }
     }
     else
     {
@@ -70,8 +73,11 @@ void ImportDialog::on_browseInpButton_clicked(bool checked)
     if (!workingDir_.isEmpty())
     {
         inpFileName = QFileDialog::getOpenFileName(this, "Choose simulation input file", workingDir_, tr(".EPSR.inp files (*.inp)"));
-        epsrInpFileName_ = QFileInfo(inpFileName).fileName();
-        ui.inpLineEdit->setText(epsrInpFileName_);
+        if (!inpFileName.isEmpty())
+        {
+            epsrInpFileName_ = QFileInfo(inpFileName).fileName();
+            ui.inpLineEdit->setText(epsrInpFileName_);
+        }
     }
     else
     {
@@ -88,8 +94,11 @@ void ImportDialog::on_browseScriptButton_clicked(bool checked)
     if (!workingDir_.isEmpty())
     {
         scriptFileName = QFileDialog::getOpenFileName(this, "Choose simulation script file", workingDir_, tr(".txt files (*.txt)"));
-        scriptFile_ = QFileInfo(scriptFileName).fileName();
-        ui.scriptLineEdit->setText(scriptFile_);
+        if (!scriptFileName.isEmpty())
+        {
+            scriptFile_ = QFileInfo(scriptFileName).fileName();
+            ui.scriptLineEdit->setText(scriptFile_);
+        }
     }
     else
     {
@@ -232,6 +241,27 @@ void ImportDialog::import()
         fileato.close();
     }
 
+    //check molFileList has been populated
+    if(molFileList.count() == 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Could not read components from .ato file.");
+        msgBox.exec();
+        return;
+    }
+
+    //check if any of the components are "moltype"
+    for (int i = 0; i < molFileList.count(); i++)
+    {
+        if (molFileList.at(i).contains("moltype"))
+        {
+            QMessageBox msgBox;
+            msgBox.setText("This .ato file is currently not compatible");
+            msgBox.exec();
+            return;
+        }
+    }
+
     //check if component files are .mol files and rename in the molFileList accordingly
     for (int i = 0; i < molFileList.count(); i++)
     {
@@ -242,6 +272,22 @@ void ImportDialog::import()
         }
         else
         molFileList.replace(i, molFileList.at(i)+".ato");
+    }
+
+    //check component files exist in folder
+    if (molFileList.count() != 0)
+    {
+        for (int i = 0; i < molFileList.count(); i++)
+        {
+            QFile file(workingDir_+molFileList.at(i));
+            if (!file.exists())
+            {
+                QMessageBox msgBox;
+                msgBox.setText("Could not find component file "+molFileList.at(i));
+                msgBox.exec();
+                return;
+            }
+        }
     }
 
     //read epsr .inp file to get data and weights files
@@ -283,6 +329,45 @@ void ImportDialog::import()
         fileinp.close();
     }
 
+    //check number of weights files and data files are the same
+    if (dataFileList.count() != wtsFileList.count())
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The number of data files and weights files is different. Import the simulation as just the simulation box and make the weights files for each dataset.");
+        msgBox.exec();
+        return;
+    }
+
+    //check data and wts files exist in folder
+    if (dataFileList.count() != 0)
+    {
+        for (int i = 0; i < dataFileList.count(); i++)
+        {
+            QFile file(workingDir_+dataFileList.at(i));
+            if (!file.exists())
+            {
+                QMessageBox msgBox;
+                msgBox.setText("Could not find data file "+dataFileList.at(i));
+                msgBox.exec();
+                return;
+            }
+        }
+    }
+    if (wtsFileList.count() != 0)
+    {
+        for (int i = 0; i < wtsFileList.count(); i++)
+        {
+            QFile file(workingDir_+wtsFileList.at(i));
+            if (!file.exists())
+            {
+                QMessageBox msgBox;
+                msgBox.setText("Could not find weights file "+wtsFileList.at(i));
+                msgBox.exec();
+                return;
+            }
+        }
+    }
+
     //write to .EPSR.pro file
     QString saveFileName = workingDir_+projectName_+".EPSR.pro";
     QFile file(saveFileName);
@@ -317,7 +402,7 @@ void ImportDialog::import()
     {
         for (int i = 0; i < dataFileList.count(); i++)
         {
-            streamWrite << "data " << nrtypeList.at(i) << " " << dataFileList.at(i) << " " << "0" << "\n";
+            streamWrite << "data " << nrtypeList.at(i) << " " << dataFileList.at(i) << " " << "0" << "\n"; //normalisation assumed to be not normalised to totals************************************************************
         }
         for (int i = 0; i < wtsFileList.count(); i++)
         {

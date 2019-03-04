@@ -8,6 +8,7 @@
 #include "epsrproject.h"
 #include "wtscomponent.h"
 #include "datafilesettings.h"
+#include "exchangeableatomsdialog.h"
 
 void MainWindow::on_dataFileBrowseButton_clicked(bool checked)
 {
@@ -72,7 +73,6 @@ void MainWindow::on_dataFileBrowseButton_clicked(bool checked)
         ui.dataFileLineEdit->setText(newDataFileName);
 
         dataFileList.append(dataFileName);
-        dataFileTypeList.append("5");
 
         dataFileName_ = dataFileName;
         if (ui.neutronDataRB->isChecked())
@@ -93,6 +93,7 @@ void MainWindow::on_dataFileBrowseButton_clicked(bool checked)
             refreshDataFileTable();
         }
     }
+    ui.exchangeableAtomsButton->setEnabled(true);
     ui.makeWtsButton->setEnabled(true);
     ui.setupEPSRButton->setEnabled(true);
 
@@ -371,13 +372,6 @@ void MainWindow::on_makeWtsButton_clicked(bool checked)
         return;
     }
 
-    //update dataFileTypeList to contain what is in dataFileTable
-    dataFileTypeList.clear();
-    for (int i = 0; i < ui.dataFileTable->rowCount(); i++)
-    {
-        dataFileTypeList.append(ui.dataFileTable->item(i,1)->text());
-    }
-
     //make weights files
     if (QFile::exists(workingDir_+wtsBaseFileName_+".NWTS.dat"))
     {
@@ -444,13 +438,13 @@ void MainWindow::makeNwts()
     QString dataNormTypeStr = QString::number(dataNormType);
     int row = ui.dataFileTable->currentRow();
 
-    ui.dataFileTable->item(row,2)->setText(dataNormTypeStr);
+    ui.dataFileTable->item(row,1)->setText(dataNormTypeStr);
 
     //make normalisationList consistent with dataFileTable normalisation column
     normalisationList.clear();
     for (int i = 0; i < dataFileList.count(); i++)
     {
-        normalisationList.append(ui.dataFileTable->item(i,2)->text());
+        normalisationList.append(ui.dataFileTable->item(i,1)->text());
     }
 
     QString istr;
@@ -458,7 +452,7 @@ void MainWindow::makeNwts()
 
     wtscomponents.clear();
 
-    for (int i = 0; i < N_components; ++i)
+    for (int i = 0; i < N_components; i++)
     {
         wtscomponents.append(WtsComponent());
         wtscomponents.last().atom=ui.atomWtsTable->item(i,0)->text();
@@ -467,7 +461,26 @@ void MainWindow::makeNwts()
         wtscomponents.last().abundance1=ui.atomWtsTable->item(i,3)->text();
         wtscomponents.last().isotope2=ui.atomWtsTable->item(i,4)->text();
         wtscomponents.last().abundance2=ui.atomWtsTable->item(i,5)->text();
-     }
+    }
+
+    //check atom types are the same as in boxatofile
+    if (atoAtomTypes.count() != N_components)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Mismatch between number of atom types in simulation box and weights setup file");
+        msgBox.exec();
+        return;
+    }
+    for (int i = 0; i < N_components; i++)
+    {
+        if (atoAtomTypes.at(i) != wtscomponents.at(i).atom)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Mismatch between atom types in simulation box and weights setup file");
+            msgBox.exec();
+            return;
+        }
+    }
 
     QTextStream streamRead(&fileRead);
     QTextStream streamWrite(&fileWrite);
@@ -522,7 +535,8 @@ void MainWindow::makeNwts()
     if (!wtsfile.exists())
     {
         QMessageBox msgBox;
-        msgBox.setText("Could not make wts file");
+        msgBox.setText("An error occured while EPSR was making the wts file.\n"
+                       "Check that the atom types are as listed in the simulation box and there are no errors in the exchaneable atoms or isotope abundances\n");
         msgBox.exec();
         return;
     }
@@ -561,13 +575,13 @@ void MainWindow::makeXwts()
     QString dataNormTypeStr = QString::number(dataNormType);
     int row = ui.dataFileTable->currentRow();
 
-    ui.dataFileTable->item(row,2)->setText(dataNormTypeStr);
+    ui.dataFileTable->item(row,1)->setText(dataNormTypeStr);
 
     //make normalisationList consistent with dataFileTable normalisation column
     normalisationList.clear();
     for (int i = 0; i < dataFileList.count(); i++)
     {
-        normalisationList.append(ui.dataFileTable->item(i,2)->text());
+        normalisationList.append(ui.dataFileTable->item(i,1)->text());
     }
 
     QString istr;
@@ -581,6 +595,24 @@ void MainWindow::makeXwts()
 //    wtscomponents.last().atom=ui.atomWtsTable->item(i,0)->text();
 //     }
 
+    //check atom types are the same as in boxatofile
+    if (atoAtomTypes.count() != N_components)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Mismatch between number of atom types in simulation box and weights setup file");
+        msgBox.exec();
+        return;
+    }
+    for (int i = 0; i < N_components; i++)
+    {
+        if (atoAtomTypes.at(i) != wtscomponents.at(i).atom)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Mismatch between atom types in simulation box and weights setup file");
+            msgBox.exec();
+            return;
+        }
+    }
 
     QTextStream streamRead(&fileRead);
     QTextStream streamWrite(&fileWrite);
@@ -650,10 +682,6 @@ void MainWindow::refreshDataFileTable()
     int row = ui.dataFileTable->currentRow();
     int nRows = ui.dataFileTable->rowCount();
     ui.dataFileTable->clearContents();
-    ui.dataFileTable->setColumnCount(4);
-    QStringList datafileheader;
-    datafileheader << "Data File" << "Data File Type" << "Normalisation" << "Weights File";
-    ui.dataFileTable->setHorizontalHeaderLabels(datafileheader);
     ui.dataFileTable->verticalHeader()->setVisible(false);
     ui.dataFileTable->horizontalHeader()->setVisible(true);
 
@@ -665,18 +693,16 @@ void MainWindow::refreshDataFileTable()
             QTableWidgetItem *itemdata = new QTableWidgetItem(dataFileList.at(i));
             itemdata->setFlags(itemdata->flags() & ~Qt::ItemIsEditable);
             ui.dataFileTable->setItem(i,0, itemdata);
-            ui.dataFileTable->setItem(i,1, new QTableWidgetItem(dataFileTypeList.at(i)));
             QTableWidgetItem *itemnorm = new QTableWidgetItem(normalisationList.at(i));
             itemnorm->setFlags(itemnorm->flags() & ~Qt::ItemIsEditable);
-            ui.dataFileTable->setItem(i,2, itemnorm);
+            ui.dataFileTable->setItem(i,1, itemnorm);
             QTableWidgetItem *itemwts = new QTableWidgetItem(wtsFileList.at(i));
             itemwts->setFlags(itemwts->flags() & ~Qt::ItemIsEditable);
-            ui.dataFileTable->setItem(i,3, itemwts);
+            ui.dataFileTable->setItem(i,2, itemwts);
         }
-        ui.dataFileTable->setColumnWidth(0, 200);
+        ui.dataFileTable->setColumnWidth(0, 300);
         ui.dataFileTable->setColumnWidth(1, 90);
-        ui.dataFileTable->setColumnWidth(2, 90);
-        ui.dataFileTable->setColumnWidth(3, 200);
+        ui.dataFileTable->setColumnWidth(2, 300);
 
         ui.dataFileTable->setSelectionBehavior(QAbstractItemView::SelectRows);
         ui.dataFileTable->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -717,11 +743,13 @@ void MainWindow::setSelectedDataFile()
     if (QFile::exists(workingDir_+wtsBaseFileName_+".NWTS.dat"))
     {
         readNwtsSetup();
+        ui.exchangeableAtomsButton->setEnabled(true);
     }
     else
     if (QFile::exists(workingDir_+wtsBaseFileName_+".XWTS.dat"))
     {
         readXwtsSetup();
+        ui.exchangeableAtomsButton->setEnabled(false);
     }
 }
 
@@ -742,7 +770,6 @@ void MainWindow::on_removeDataFileButton_clicked(bool checked)
     if (dataFileList.count() > 1)
     {
         dataFileList.takeAt(row);
-        dataFileTypeList.takeAt(row);
         wtsFileList.takeAt(row);
         normalisationList.takeAt(row);
         setSelectedDataFile();
@@ -751,16 +778,17 @@ void MainWindow::on_removeDataFileButton_clicked(bool checked)
     else
     {
         dataFileList.clear();
-        dataFileTypeList.clear();
         wtsFileList.clear();
         normalisationList.clear();
         ui.normalisationComboBox->setCurrentIndex(0);
         ui.atomWtsTable->clearContents();
         ui.atomWtsTable->setRowCount(0);
         ui.dataFileTable->removeRow(0);
+        ui.exchangeableAtomsButton->setEnabled(false);
         ui.makeWtsButton->setEnabled(false);
         ui.setupEPSRButton->setEnabled(false);
         ui.dataFileLineEdit->clear();
+        ui.exchangeableAtomsButton->setEnabled(false);
     }
 
     //save .pro file
@@ -768,3 +796,68 @@ void MainWindow::on_removeDataFileButton_clicked(bool checked)
 
     ui.messagesLineEdit->setText("Data file removed");
 }
+
+void MainWindow::on_exchangeableAtomsButton_clicked(bool checked)
+{
+    if (wtsFileList.count() < 2) return;
+
+    ExchangeableAtomsDialog exchangeableAtomsDialog(this);
+
+    exchangeableAtomsDialog.setModal(true);
+    exchangeableAtomsDialog.show();
+    exchangeableAtomsDialog.raise();
+    exchangeableAtomsDialog.activateWindow();
+
+    addExchangeableAtoms = exchangeableAtomsDialog.exec();
+
+    if (addExchangeableAtoms == ExchangeableAtomsDialog::Accepted)
+    {
+        QString wtsSetupFile = exchangeableAtomsDialog.getWtsFile();
+
+        //open and read weights setup file
+        QString wtsFileName = workingDir_+wtsSetupFile;
+        QFile file(wtsFileName);
+        if(!file.open(QFile::ReadOnly | QFile::Text))
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Could not open wts setup file");
+            msgBox.exec();
+            return;
+        }
+        QTextStream stream(&file);
+        QString line;
+        QStringList dataLine;
+        dataLine.clear();
+
+        QStringList exchangeableAtoms;
+        exchangeableAtoms.clear();
+
+        do
+        {
+            line = stream.readLine();
+            dataLine = line.split(" ", QString::SkipEmptyParts);
+            if (dataLine.count() == 0) continue;
+            if (dataLine.at(0) == "iexchange")
+            {
+                exchangeableAtoms.append(dataLine.at(1));
+            }
+        } while (!stream.atEnd());
+        file.close();
+
+        if (wtscomponents.count() != exchangeableAtoms.count())
+        {
+            QMessageBox msgBox;
+            msgBox.setText("There is a mismatch between the weights setup files");
+            msgBox.exec();
+            return;
+        }
+
+        //show data in Table
+        for (int i = 0; i < wtscomponents.count(); ++i)
+        {
+            ui.atomWtsTable->setItem(i,1, new QTableWidgetItem(exchangeableAtoms.at(i)));
+        }
+        return;
+    }
+}
+
